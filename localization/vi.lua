@@ -19,6 +19,12 @@ return {
             ph_enable_dragging = "Bật Kéo Thả",
             ph_enable_action_button = "Bật Nút Thao Tác",
             ph_drag_to_select_deselect = "Bật kéo thả để chọn/bỏ chọn khu vực trên tay",
+            ph_drag_option = "Chế Độ Kéo Thả",
+            drag_options = {
+                "Tự Động",
+                "Chuột",
+                "Màn Cảm Ứng",
+            },
             ph_drag_area_op = "Độ Mờ Khu Vực Kéo Thả",
         },
     },

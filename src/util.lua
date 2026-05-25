@@ -20,10 +20,19 @@ end
 local controller_upd_axis = Controller.update_axis
 function Controller:update_axis(dt)
     local ret = controller_upd_axis(self, dt)
-    if SilkTouch.force_touch then
+    if G.SETTINGS.drag_option == 2 then
+        ret = "mouse"
+    elseif G.SETTINGS.drag_option == 3 then
         ret = "touch"
     end
     return ret
+end
+
+G.FUNCS.cycle_update = function(args)
+    args = args or {}
+    if args.cycle_config and args.cycle_config.ref_table and args.cycle_config.ref_value then
+        args.cycle_config.ref_table[args.cycle_config.ref_value] = args.to_key
+    end
 end
 
 if G.SETTINGS.enable_action_buttons == nil then
@@ -35,6 +44,9 @@ end
 if G.SETTINGS.enable_drag_select == nil then
     G.SETTINGS.enable_drag_select = SilkTouch.OS == 'Android' or SilkTouch.OS == 'iOS' or not Handy
 end
+if G.SETTINGS.drag_option == nil then
+    G.SETTINGS.drag_option = 1
+end
 G.SETTINGS.drag_area_opacity = G.SETTINGS.drag_area_opacity or 90
 
 function SilkTouch.config_tab()
@@ -44,6 +56,10 @@ function SilkTouch.config_tab()
     and localize("ph_enable_action_button") or "Enable Actions Buttons"
     local drag_to_select_deselect_label = localize("ph_drag_to_select_deselect") ~= "ERROR"
     and localize("ph_drag_to_select_deselect") or "Enable drag to select/deselect from hand area"
+    local drag_option_label = localize("ph_drag_option") ~= "ERROR"
+    and localize("ph_drag_option") or "Drag Mode"
+    local drag_options = localize("drag_options") ~= "ERROR"
+    and localize("drag_options") or {"Automatic", "Cursor", "Touchscreen"}
     local drag_area_op_label = localize("ph_drag_area_op") ~= "ERROR"
     and localize("ph_drag_area_op") or "Drag Area Opacity"
     return {n=G.UIT.ROOT, config={align = "cm", padding = 0.05, colour = G.C.CLEAR}, nodes={
@@ -55,6 +71,7 @@ function SilkTouch.config_tab()
         end}),
         create_toggle({label = action_button_label, ref_table = G.SETTINGS, ref_value = 'enable_action_buttons'}),
         create_toggle({label = drag_to_select_deselect_label, ref_table = G.SETTINGS, ref_value = 'enable_drag_select'}),
+        create_option_cycle({label = drag_option_label, current_option = G.SETTINGS.drag_option, options = drag_options, ref_table = G.SETTINGS, ref_value = 'drag_option', w = 3.7*0.65/(5/6), h=0.8*0.65/(5/6), text_scale=0.5*0.65/(5/6), scale=5/6, no_pips = true, opt_callback = 'cycle_update'}),
         create_slider({label = drag_area_op_label, w = 5, h = 0.4, ref_table = G.SETTINGS, ref_value = 'drag_area_opacity', min = 0, max = 100}),
     }}
 end

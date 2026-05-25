@@ -19,6 +19,12 @@ return {
             ph_enable_dragging = "Enable Dragging",
             ph_enable_action_button = "Enable Actions Buttons",
             ph_drag_to_select_deselect = "Enable drag to select/deselect from hand area",
+            ph_drag_option = "Drag Mode",
+            drag_options = {
+                "Automatic",
+                "Cursor",
+                "Touchscreen",
+            },
             ph_drag_area_op = "Drag Area Opacity",
         },
     },
