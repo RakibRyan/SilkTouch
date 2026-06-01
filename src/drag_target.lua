@@ -145,17 +145,22 @@ SilkTouch.DragTarget{
     end,
     colour = G.C.RED,
     drag_condition = function(card)
-        return card.area and ((card.area == G.pack_cards
-        and card.ability.consumeable and card.ability.set ~= "Planet"
-        and not (booster_obj and SMODS.card_select_area(card, booster_obj) and card:selectable_from_pack(booster_obj)))
+        local to_area, can_also_use
+        if booster_obj then
+            to_area, can_also_use = card:selectable_from_pack(booster_obj)
+        end
+        local can_drag = card.area and ((card.area == G.pack_cards
+        and (card.ability.consumeable and card.ability.set ~= "Planet"
+        and not to_area or can_also_use))
         or ((card.area == G.jokers or card.area == G.consumeables) and card.ability.consumeable))
+        return can_drag
     end,
     active_check = function(card)
         return card:can_use_consumeable()
     end,
     release_func = function(card)
         if card:can_use_consumeable() then
-            G.FUNCS.use_card{config = {ref_table = card}}
+            G.FUNCS.use_card{config = {ref_table = card, SMODS_use_card = true}}
         end
     end,
 }
@@ -179,16 +184,28 @@ SilkTouch.DragTarget{
     end,
     colour = G.C.GREEN,
     drag_condition = function(card)
-        return card.area and card.area == G.pack_cards
-        and not (card.ability.consumeable and card.ability.set ~= "Planet"
-        and not (booster_obj and SMODS.card_select_area(card, booster_obj) and card:selectable_from_pack(booster_obj)))
+        local to_area, can_also_use
+        if booster_obj then
+            to_area, can_also_use = card:selectable_from_pack(booster_obj)
+        end
+        local can_drag = card.area and card.area == G.pack_cards
+        and (not (card.ability.consumeable and card.ability.set ~= "Planet"
+        and not to_area) or can_also_use) or false
+        return can_drag
     end,
     active_check = function(card)
         return SilkTouch.can_select(card)
     end,
     release_func = function(card)
         if SilkTouch.can_select(card) then
-            G.FUNCS.use_card{config={ref_table = card}}
+            local to_area, can_also_use, SMODS_use = nil, nil, card.ability.set == "Planet"
+            if booster_obj then
+                to_area, can_also_use = card:selectable_from_pack(booster_obj)
+            end
+            if to_area or can_also_use then
+                SMODS_use = false
+            end
+            G.FUNCS.use_card{config={ref_table = card, SMODS_use_card = SMODS_use}}
         end
     end,
 }

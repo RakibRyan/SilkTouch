@@ -159,11 +159,15 @@ SilkTouch.ControllerButton{
         }
     end,
     text_scale = function() return {0.5} end,
+    SMODS_use_card = true, -- Internal field for new `select_card`, DO NOT USE ELSEWHERE
     focus_condition = function(card)
         if card.area and card.area == G.pack_cards and card.ability.consumeable then
-            local to_area = booster_obj and SMODS.card_select_area(card, booster_obj) and card:selectable_from_pack(booster_obj)
+            local to_area, can_also_use
+            if booster_obj then
+                to_area, can_also_use = card:selectable_from_pack(booster_obj)
+            end
             if to_area then
-                return false
+                return can_also_use or false
             end
         end
         return G.STAGE == G.STAGES.RUN and card.area and not card.area.config.collection and card.area.config.type ~= "title_2"
@@ -176,8 +180,26 @@ SilkTouch.ControllerButton{
 SilkTouch.ControllerButton{
     key = "select",
     prefix_config = {key = false},
-    side = "right",
-    button_key = "rightshoulder",
+    get_side = function(card)
+        local to_area, can_also_use
+        if booster_obj then
+            to_area, can_also_use = card:selectable_from_pack(booster_obj)
+        end
+        if to_area and can_also_use then
+            return "left"
+        end
+        return "right"
+    end,
+    get_button_key = function(card)
+        local to_area, can_also_use
+        if booster_obj then
+            to_area, can_also_use = card:selectable_from_pack(booster_obj)
+        end
+        if to_area and can_also_use then
+            return "leftshoulder"
+        end
+        return "rightshoulder"
+    end,
     button_order = -2,
     text = function(card)
         return {
@@ -189,7 +211,10 @@ SilkTouch.ControllerButton{
     minw = 1.1,
     focus_condition = function(card)
         if card.area and card.area == G.pack_cards and card.ability.consumeable then
-            local to_area = booster_obj and SMODS.card_select_area(card, booster_obj) and card:selectable_from_pack(booster_obj)
+            local to_area, can_also_use
+            if booster_obj then
+                to_area, can_also_use = card:selectable_from_pack(booster_obj)
+            end
             if to_area then
                 return true
             end

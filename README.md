@@ -141,6 +141,23 @@ This version is packed with a brand new API: `SilkTouch.ControllerButton`, allow
             "left", "right", "leftstick", "rightstick", "guide",
         }
         ```
+    - `get_button_key`: Used for finer control over which key to press
+        - Expects a function like this:
+        ```lua
+        {
+            -- An example of dynamic button binding based on whether the card is both selectable and usable from pack (introduced by https://github.com/Steamodded/smods/pull/1406)
+            get_button_key = function(card)
+                local to_area, can_also_use
+                if booster_obj then
+                    to_area, can_also_use = card:selectable_from_pack(booster_obj)
+                end
+                if to_area and can_also_use then
+                    return "leftshoulder"
+                end
+                return "rightshoulder"
+            end
+        }
+        ```
     - `button_order = 0`: The order of this button when aligning multiple ones on either side (smallest order is placed on top, vanilla buttons occupy -2 and -1)
     - `text`: A function returning a table of localized texts
         - Expects a function like this:

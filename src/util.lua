@@ -103,7 +103,10 @@ end
 G.FUNCS.can_select_card = function(e)
     local card = e.config.ref_table
     local card_limit = (card.ability.card_limit or 0) - (card.ability.extra_slots_used or 0)
-    local to_area = SMODS and booster_obj and SMODS.card_select_area(card, booster_obj) and card:selectable_from_pack(booster_obj)
+    local to_area, can_also_use
+    if SMODS and booster_obj then
+        to_area, can_also_use = card:selectable_from_pack(booster_obj)
+    end
     if card.ability.set == 'Joker' and not to_area then
         to_area = "jokers"
     end
@@ -168,7 +171,7 @@ function G.UIDEF.card_focus_ui(card)
       if k ~= "silktouch_order" then
         local side = v.get_side and v.get_side(card) or v.side
         base_attach.children[k] = G.UIDEF.card_focus_button{
-          card = card, parent = base_attach, type = k, func = v.active_check_cb, button = v.press_func_cb,
+          card = card, parent = base_attach, type = k, func = v.active_check_cb, button = v.press_func_cb, SMODS_use_card = v.SMODS_use_card,
           card_width = card_width*v.card_width_coeffi, max_index = base_attach.config.align_count[side], index = i
         }
       end
@@ -350,9 +353,9 @@ function G.UIDEF.card_focus_button(args)
           T = {args.card.VT.x,args.card.VT.y,0,0},
           definition =
             {n=G.UIT.ROOT, config = {align = 'cm', colour = G.C.CLEAR}, nodes={
-              {n=G.UIT.R, config={id = k, ref_table = args.card, ref_parent = args.parent, align = side == "left" and 'cl' or 'cr', colour = G.C.BLACK, shadow = true, r = 0.08, func = args.func, one_press = true, button = args.button, focus_args = {type = 'none'}, hover = true}, nodes={
+              {n=G.UIT.R, config={id = k, ref_table = args.card, ref_parent = args.parent, align = side == "left" and 'cl' or 'cr', colour = G.C.BLACK, shadow = true, r = 0.08, func = args.func, one_press = true, button = args.button, SMODS_use_card = args.SMODS_use_card, focus_args = {type = 'none'}, hover = true}, nodes={
                 {n=G.UIT.R, config={align = side == "left" and 'cl' or 'cr', minw = minw, minh = minh, padding = 0.08,
-                    focus_args = {button = v.button_key, scale = 0.55, orientation = side == "left" and 'tli' or 'tri', offset = {x = side == "left" and 0.1 or -0.1, y = 0}, type = 'none'},
+                    focus_args = {button = v.get_button_key and v.get_button_key(args.card) or v.button_key, scale = 0.55, orientation = side == "left" and 'tli' or 'tri', offset = {x = side == "left" and 0.1 or -0.1, y = 0}, type = 'none'},
                     func = 'set_button_pip'}, nodes={
                   {n=G.UIT.R, config={align = "cm", minh = 0.3}, nodes={}},
                   {n=G.UIT.R, config={align = "cm"}, nodes={
@@ -701,4 +704,13 @@ function drag_target(args)
       end
     end
     }))
+end
+
+-- Temporary fix for cards in peek shop area (Cartomancer) having use and sell buttons for controller when they shouldn't
+local card_update_ref = Card.update
+function Card:update(dt)
+    card_update_ref(self, dt)
+    if self.cart_overlay_card and self.area and not self.area.config.collection then
+        self.area.config.collection = true
+    end
 end
