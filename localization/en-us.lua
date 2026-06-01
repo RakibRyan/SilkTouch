@@ -26,6 +26,9 @@ return {
                 "Touchscreen",
             },
             ph_drag_area_op = "Drag Area Opacity",
+            -- NEW KEYS ADDED BELOW
+            ltd_drag_lock = "Lock",
+            ltd_drag_unlock = "Unlock",
         },
     },
 }

@@ -147,21 +147,20 @@ SilkTouch.DragTarget{
         }
     end,
     text = function(card)
+        -- Fetches the translated text from the dictionary[span_1](start_span)[span_1](end_span)[span_2](start_span)[span_2](end_span)
         if card.ltdm_state and card.ltdm_state.locked then
-            return {"Unlock"}
+            return {localize('ltd_drag_unlock')}
         end
-        return {"Lock"}
+        return {localize('ltd_drag_lock')}
     end,
     colour = G.C.BLUE,
     drag_condition = function(card)
-        -- Target only appears if Lock the Deal is present and the card is a valid shop item
         return LTDM ~= nil 
            and card.ltdm_state ~= nil 
            and card.area 
            and (card.area == G.shop_jokers or card.area == G.shop_vouchers or card.area == G.shop_booster)
     end,
     active_check = function(card)
-        -- Redundant checks removed from active_check since drag_condition handles them now
         return true
     end,
     release_func = function(card)
@@ -175,7 +174,6 @@ SilkTouch.DragTarget{
         end
     end,
 }
-
 
 
 SilkTouch.DragTarget{
