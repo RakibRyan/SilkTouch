@@ -127,6 +127,57 @@ SilkTouch.DragTarget{
     end,
 }
 
+
+
+SilkTouch.DragTarget{
+    key = "lock",
+    prefix_config = {key = false},
+    moveable_t = function()
+        local base_x = G.deck.T.x + 0.2
+        local base_w = G.deck.T.w - 0.1
+        local padding = 0.2
+
+        return Moveable{
+            T = {
+                x = base_x + base_w + padding,
+                y = G.deck.T.y - 5.1,
+                w = base_w,
+                h = 4.5,
+            }
+        }
+    end,
+    text = function(card)
+        if card.ltdm_state and card.ltdm_state.locked then
+            return {"Unlock"}
+        end
+        return {"Lock"}
+    end,
+    colour = G.C.BLUE,
+    drag_condition = function(card)
+        -- Target only appears if Lock the Deal is present and the card is a valid shop item
+        return LTDM ~= nil 
+           and card.ltdm_state ~= nil 
+           and card.area 
+           and (card.area == G.shop_jokers or card.area == G.shop_vouchers or card.area == G.shop_booster)
+    end,
+    active_check = function(card)
+        -- Redundant checks removed from active_check since drag_condition handles them now
+        return true
+    end,
+    release_func = function(card)
+        if LTDM and LTDM.state and LTDM.state.ltd and card.ltdm_state then
+            if card.ltdm_state.locked then
+                LTDM.state.ltd:unlock_item(card.ltdm_state.id)
+            else
+                LTDM.state.ltd:lock_item(card)
+            end
+            card:juice_up()
+        end
+    end,
+}
+
+
+
 SilkTouch.DragTarget{
     key = "C_use",
     prefix_config = {key = false},
@@ -145,22 +196,17 @@ SilkTouch.DragTarget{
     end,
     colour = G.C.RED,
     drag_condition = function(card)
-        local to_area, can_also_use
-        if booster_obj then
-            to_area, can_also_use = card:selectable_from_pack(booster_obj)
-        end
-        local can_drag = card.area and ((card.area == G.pack_cards
-        and (card.ability.consumeable and card.ability.set ~= "Planet"
-        and not to_area or can_also_use))
+        return card.area and ((card.area == G.pack_cards
+        and card.ability.consumeable and card.ability.set ~= "Planet"
+        and not (booster_obj and SMODS.card_select_area(card, booster_obj) and card:selectable_from_pack(booster_obj)))
         or ((card.area == G.jokers or card.area == G.consumeables) and card.ability.consumeable))
-        return can_drag
     end,
     active_check = function(card)
         return card:can_use_consumeable()
     end,
     release_func = function(card)
         if card:can_use_consumeable() then
-            G.FUNCS.use_card{config = {ref_table = card, SMODS_use_card = true}}
+            G.FUNCS.use_card{config = {ref_table = card}}
         end
     end,
 }
@@ -171,9 +217,9 @@ SilkTouch.DragTarget{
     moveable_t = function()
         return Moveable{
             T = {
-                x = G.play.T.x - 0.7,
+                x = G.play.T.x,
                 y = G.play.T.y - 2,
-                w = G.play.T.w + 1.4,
+                w = G.play.T.w + 2,
                 h = G.play.T.h + 1,
             }
         }
@@ -184,28 +230,16 @@ SilkTouch.DragTarget{
     end,
     colour = G.C.GREEN,
     drag_condition = function(card)
-        local to_area, can_also_use
-        if booster_obj then
-            to_area, can_also_use = card:selectable_from_pack(booster_obj)
-        end
-        local can_drag = card.area and card.area == G.pack_cards
-        and (not (card.ability.consumeable and card.ability.set ~= "Planet"
-        and not to_area) or can_also_use) or false
-        return can_drag
+        return card.area and card.area == G.pack_cards
+        and not (card.ability.consumeable and card.ability.set ~= "Planet"
+        and not (booster_obj and SMODS.card_select_area(card, booster_obj) and card:selectable_from_pack(booster_obj)))
     end,
     active_check = function(card)
         return SilkTouch.can_select(card)
     end,
     release_func = function(card)
         if SilkTouch.can_select(card) then
-            local to_area, can_also_use, SMODS_use = nil, nil, card.ability.set == "Planet"
-            if booster_obj then
-                to_area, can_also_use = card:selectable_from_pack(booster_obj)
-            end
-            if to_area or can_also_use then
-                SMODS_use = false
-            end
-            G.FUNCS.use_card{config={ref_table = card, SMODS_use_card = SMODS_use}}
+            G.FUNCS.use_card{config={ref_table = card}}
         end
     end,
 }
